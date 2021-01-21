@@ -1,5 +1,6 @@
 ﻿using Brickwork.Entities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -11,6 +12,8 @@ namespace Brickwork
     public class BrickLogic
     {
         // Configuration Constants 
+        private static readonly int MODULE_HEIGHT = 2;
+        private static readonly int MODULE_WIDTH = 4;
         private static readonly int MAX_BUILDING_WIDTH_AND_HEIGHT_VALUE = 100;
         private static readonly string NOT_VALID_BUILDING_STRING = "Building is not valid!";
         private static readonly string NOT_VALID_INPUT_STRING = "Input is not valid!";
@@ -38,60 +41,54 @@ namespace Brickwork
         /// </summary>
         public void GenerateOutput(Building building)
         {
-            for (var i = 0; i < building.Height; i += 2)
+            var newArray = new int[MODULE_HEIGHT, MODULE_WIDTH];
+
+            for (var i = 0; i < building.Height; i += MODULE_HEIGHT)
             {
-                for (var j = 0; j < building.Width - 1; j += 4)
+                for (var j = 0; j < building.Width - 1; j += MODULE_WIDTH)
                 {
-                    ////Preliminary Transformation
-                    //// First - Hor, Second - Ver
+                    //// Preliminary Transformation 
+                    //// into Transformation #1
+                    //// --|...|      |--|
+                    ////          -> 
+                    //// --|...|      |--|
                     //if (building.Values[i, j] != building.Values[i + 1, j] &&
                     //    (building.Values[i, j + 1] == building.Values[i, j]
                     //    && building.Values[i, j + 1] != building.Values[i, j + 2]))
                     //{
-                    //    var brick = new Brick();
-                    //    brick.BrickType = BrickType.Vertical;
-
-                    //    for (int v = 3; v < building.Width; v++)
-                    //    {
-                    //        if (building.Values[i, v] == building.Values[i + 1, v])
-                    //        {
-                    //            brick.Value = building.Values[i, v];
-                    //            brick.Coordinates = new ValueTuple<int, int, int, int>(i, v, i + 1, v);
-                    //        }
-                    //    }
-
-                    //    var savedNumber = building.Values[i, j + 2];
-
-                    //    building.Values[i, j] = brick.Value;
-                    //    building.Values[i + 1, j] = brick.Value;
-
-                    //    building.Values[i, j + 2] = building.Values[i, j + 1];
-                    //    building.Values[i + 1, j + 2] = building.Values[i + 1, j + 1];
-
-                    //    building.Values[i, j + 3] = savedNumber;
-                    //    building.Values[i + 1, j + 3] = savedNumber;
-
-                    //    building.Values[i,j+3]
+                        
                     //}
-                    // Transformation: First Brick: Horizontal -> Vertical (4 bricks in a single iteration)
+
+                    // Transformation #1: First Brick: Horizontal -> Vertical (4 Horizontal Bricks into 2 Vertical 2 Horizontal)
+                    // ----       |--|
+                    //       ->
+                    // ----       |--|   
                     if (building.Values[i, j] == building.Values[i, j + 1])
                     {
-                        var savedNumber = building.Values[i, j];
-                        var savedNumber2 = building.Values[i, j + 3];
 
-                        //2 ver 2
-                        building.Values[i, j] = building.Values[i, j + 2];
-                        building.Values[i + 1, j] = building.Values[i, j + 2];
+                        // 2
+                        newArray[0, 0] = building.Values[i, j + 2];
+                        newArray[1, 0] = building.Values[i, j + 2];
 
-                        //1 hor 1 ->
-                        building.Values[i, j + 1] = savedNumber;
-                        building.Values[i, j + 2] = savedNumber;
+                        // 1
+                        newArray[0, 1] = building.Values[i, j];
+                        newArray[0, 2] = building.Values[i, j];
 
-                        //3 hor 3 ->
-                        building.Values[i + 1, j + 2] = building.Values[i + 1, j + 1];
+                        // 3
+                        newArray[1, 1] = building.Values[i + 1, j];
+                        newArray[1, 2] = building.Values[i + 1, j];
 
-                        //4 ver 4
-                        building.Values[i, j + 3] = building.Values[i + 1, j + 3];
+                        // 4
+                        newArray[0, 3] = building.Values[i + 1, j + 2];
+                        newArray[1, 3] = building.Values[i + 1, j + 2];
+
+                        for (var v = 0; v < 2; v++)
+                        {
+                            for (var s = 0; s < 4; s++)
+                            {
+                                building.Values[v, s] = newArray[v, s];
+                            }
+                        }
 
                         if (j != 0 && building.Values[i, j] == building.Values[i + 1, j + 1])
                         {
@@ -100,27 +97,35 @@ namespace Brickwork
                     }
                     else
                     {
-                        // Transformation: First Brick: Vertical -> Horizontal (4 bricks at a time)
+                        // Transformation #2: First Brick: Vertical -> Horizontal (4 bricks at a time)
+                        // |--|       ----
+                        //       ->
+                        // |--|       ----
                         if (building.Values[i + 1, j] == building.Values[i, j])
                         {
-                            var savedNumber = building.Values[i, j];
-                            var savedNumber2 = building.Values[i, j + 3];
-                            var savedNumber3 = building.Values[i + 1, j + 2];
+                            // 1
+                            newArray[0, 0] = building.Values[i, j + 1];
+                            newArray[0, 1] = building.Values[i, j + 1];
 
-                            //5 hor 5
-                            building.Values[i, j] = building.Values[i, j + 1];
-                            building.Values[i, j + 1] = building.Values[i, j + 2];
+                            // 2
+                            newArray[0, 2] = building.Values[i, j];
+                            newArray[0, 3] = building.Values[i, j];
 
-                            //6 hor 6
-                            building.Values[i, j + 2] = savedNumber;
-                            building.Values[i, j + 3] = savedNumber;
+                            // 3
+                            newArray[1, 0] = building.Values[i + 1, j + 1];
+                            newArray[1, 1] = building.Values[i + 1, j + 1];
 
-                            //7 hor 7
-                            building.Values[i + 1, j] = building.Values[i + 1, j + 1];
-                            building.Values[i + 1, j + 1] = savedNumber3;
+                            // 4
+                            newArray[1, 2] = building.Values[i, j + 3];
+                            newArray[1, 3] = building.Values[i, j + 3];
 
-                            building.Values[i + 1, j + 2] = savedNumber2;
-                            building.Values[i + 1, j + 3] = savedNumber2;
+                            for (var v = 0; v < 2; v++)
+                            {
+                                for (var s = 0; s < 4; s++)
+                                {
+                                    building.Values[i + v, j + s] = newArray[v, s];
+                                }
+                            }
 
                             if (j != 0 && building.Values[i, j] == building.Values[i + 1, j + 1])
                             {
@@ -139,7 +144,8 @@ namespace Brickwork
         /// Loads input data from the console, per the exercise example guide <br></br>
         /// This includes width and height and brick layers as per exercise example guide
         /// </summary>
-        /// <param name="building">Brick to load data into</param>
+        /// <param name="building">Brick to Load Data Into</param>
+        /// <param name="readFile">Boolean whether or not to use the file functionality</param>
         public bool GenerateInput(Building building, bool readFile = false)
         {
             // Automatic Reading from file, will read an input.txt file in the binaries and execute
@@ -325,7 +331,7 @@ namespace Brickwork
         {
             foreach (var value in building.Values)
             {
-                if (value > building.MaxNumber || value <= 0)
+                if (value > building.MaxBrickValue || value <= 0)
                 {
                     Console.WriteLine($"{NOT_VALID_BUILDING_STRING}!\nA value in the building is incorrect: {value}");
                     return false;
@@ -342,7 +348,6 @@ namespace Brickwork
             }
 
             Console.Write("\n");
-
             for (var i = 0; i < building.Height; i++)
             {
                 for (var j = 0; j < building.Width; j++)
@@ -351,6 +356,7 @@ namespace Brickwork
                 }
                 Console.Write("\n");
             }
+
             Console.Write("\n");
             for (var i = 0; i < building.Width; i++)
             {

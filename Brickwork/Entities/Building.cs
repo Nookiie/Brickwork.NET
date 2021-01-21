@@ -8,7 +8,11 @@ namespace Brickwork
     /// </summary>
     public class Building
     {
+        /// <summary>
+        /// Building's Values - includes all values in the form of a matrix, containing coordinates
+        /// </summary>
         public int[,] Values { get; set; }
+
         public IList<Brick> Bricks { get; set; } = new List<Brick>();
 
         /// <summary>
@@ -25,7 +29,7 @@ namespace Brickwork
         /// The Max Number, that is decided by the <see cref="Height"/> and <see cref="Width"/> for the Brick Placement and must be equal to the Brick Count.<br></br>
         /// Any higher value can not be a part of the building
         /// </summary>
-        public int MaxNumber
+        public int MaxBrickValue
         {
             get => Height * Width / 2;
         }
