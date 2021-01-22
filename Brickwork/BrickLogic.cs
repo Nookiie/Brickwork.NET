@@ -36,7 +36,7 @@ namespace Brickwork
 
             while (true)
             {
-                if (!GenerateInput(building, true) || !GenerateBricks(building) || !IsBuildingBricksValid(building))
+                if (!GenerateInput(building, false) || !GenerateBricks(building) || !IsBuildingBricksValid(building))
                 {
                     Console.WriteLine("Building is not valid!\nResetting...");
                     continue;
@@ -54,11 +54,17 @@ namespace Brickwork
         public void GenerateOutput(Building building)
         {
             var newArray = new int[MODULE_HEIGHT, MODULE_WIDTH];
+            var preliminaryTransformed = false;
 
             for (var i = 0; i < building.Height; i += MODULE_HEIGHT)
             {
                 for (var j = 0; j < building.Width - 1; j += MODULE_WIDTH)
                 {
+                    if (preliminaryTransformed)
+                    {
+                        break;
+                    }
+
                     // Preliminary Minimal Transformations are done, in case of Width being a number that can not be divided by 4
                     #region Preliminary Transformations
 
@@ -124,6 +130,8 @@ namespace Brickwork
                         }
                     }
 
+                    // Preliminary Transformations are done with certain templates, where dynamic operations have to be made
+                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
 
                     // Preliminary Transformation #1: Left Brick Vertical, Right Brick Far Away Vertical, 2 Bricks Horizontal -> Template Transformation #2
                     // |--...|      |--|    | 1 2 2...4         1 2 2 4   
@@ -173,12 +181,12 @@ namespace Brickwork
                                 building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
                             }
                         }
+
+                        preliminaryTransformed = true;
                     }
 
-                    // Preliminary Transformations are done with certain templates, where dynamic operations have to be made
-                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
 
-                    // Preliminary Transformation #3 Left Brick Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template Transformation #2
+                    // Preliminary Transformation #2 Left Brick Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template Transformation #2
                     // --|...|      |--|    | 1 1 3...4      4 1 1 3
                     //          ->          |            ->             
                     // --|...|      |--|    | 2 2 3...4      4 2 2 3
@@ -219,6 +227,8 @@ namespace Brickwork
                                 building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
                             }
                         }
+
+                        preliminaryTransformed = true;
                     }
 
                     #endregion
@@ -320,7 +330,7 @@ namespace Brickwork
                         CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
 
-                  
+
                     // Transformation #4: 4 Bricks Vertical -> 4 Bricks Horizontal
                     // ||--     --||    | 1 2 3 3       1 1 3 4
                     //      ->          |           ->
