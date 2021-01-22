@@ -11,16 +11,26 @@ namespace Brickwork
 {
     public class BrickLogic
     {
-        // Configuration Constants 
+        // Configuration Constants
+
+        #region Volatile (Application will not work properly if changed)
+
         private static readonly int MODULE_HEIGHT = 2;
         private static readonly int MODULE_WIDTH = 4;
+
+        #endregion
+
+        #region Editable
+
         private static readonly int MAX_BUILDING_WIDTH_AND_HEIGHT_VALUE = 100;
         private static readonly string NOT_VALID_BUILDING_STRING = "Building is not valid!";
         private static readonly string NOT_VALID_INPUT_STRING = "Input is not valid!";
 
+        #endregion 
+
         public void Initialize()
         {
-            Building building = new Building();
+            var building = new Building();
 
             while (true)
             {
@@ -37,7 +47,7 @@ namespace Brickwork
 
         /// <summary>
         /// Loads Output, which is triggered after <see cref="GenerateInput(Building)"/> based on exercise instructions<br></br>
-        /// Contains the main logic component for this exercises
+        /// Contains the main logic component for this exercises, which revolves around performing transformations on pre-selected templates<br></br>
         /// </summary>
         public void GenerateOutput(Building building)
         {
@@ -47,6 +57,8 @@ namespace Brickwork
             {
                 for (var j = 0; j < building.Width - 1; j += MODULE_WIDTH)
                 {
+                    // Preliminary Transformations are done with certain templates, where dynamic operations have to be made
+                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
                     #region Preliminary Transformations
 
                     // Preliminary Transformation #1 Left Bricks Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template #2
@@ -133,12 +145,14 @@ namespace Brickwork
                     }
                     #endregion
 
+                    // Main Transformations that begin transforming the array, by the specified module parameters
+                    // At this time of coding the module should be 2 x 4 (Height x Width)
                     #region Main Transformations
 
                     // Transformation #1: 4 Bricks Horizontal -> 2 Bricks Vertical, 2 Bricks Horizontal
-                    // ----       |--|
-                    //       ->
-                    // ----       |--|   
+                    // ----       |--|  | 1 1 2 2    1 2 2 4
+                    //       ->         |         ->
+                    // ----       |--|  | 3 3 4 4    1 3 3 4
 
                     if (building.Values[i, j] == building.Values[i, j + 1] &&
                         building.Values[i, j + 2] == building.Values[i, j + 3] &&
@@ -162,19 +176,13 @@ namespace Brickwork
                         newArray[0, 3] = building.Values[i + 1, j + 2];
                         newArray[1, 3] = building.Values[i + 1, j + 2];
 
-                        for (var v = 0; v < 2; v++)
-                        {
-                            for (var s = 0; s < 4; s++)
-                            {
-                                building.Values[v + i, s + j] = newArray[v, s];
-                            }
-                        }
+                        CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
 
-                    // Transformation #5: 2 Bricks Vertical, 2 Bricks Horizontal -> 4 Bricks Horizontal 
-                    // |--|       ----
-                    //       ->
-                    // |--|       ----
+                    // Transformation #2: 2 Bricks Vertical, 2 Bricks Horizontal -> 4 Bricks Horizontal 
+                    // |--|       ----  | 1 2 2 4      1 1 2 2
+                    //       ->         |          ->
+                    // |--|       ----  | 1 3 3 4      3 3 4 4
 
                     else if (building.Values[i, j] == building.Values[i + 1, j] &&
                         building.Values[i, j + 1] != building.Values[i + 1, j + 1] &&
@@ -183,7 +191,6 @@ namespace Brickwork
                         building.Values[i, j + 3] == building.Values[i + 1, j + 3] &&
                         building.Values[i, j + 2] != building.Values[i + 1, j + 2])
                     {
-
                         // 1
                         newArray[0, 0] = building.Values[i, j + 1];
                         newArray[0, 1] = building.Values[i, j + 1];
@@ -200,21 +207,14 @@ namespace Brickwork
                         newArray[1, 2] = building.Values[i, j + 3];
                         newArray[1, 3] = building.Values[i, j + 3];
 
-
-                        // Copy All element values at the current block iteraton into the new building
-                        for (var v = 0; v < 2; v++)
-                        {
-                            for (var s = 0; s < 4; s++)
-                            {
-                                building.Values[i + v, j + s] = newArray[v, s];
-                            }
-                        }
+                        CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
 
-                    // Transformation #2: 4 Bricks Vertical -> 4 Bricks Horizontal
-                    // ||||     ----
-                    //      ->
-                    // ||||     ----
+                    // Transformation #3: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // ||||     ---- | 1 2 3 4      1 1 3 3
+                    //      ->       |          ->
+                    // ||||     ---- | 1 2 3 4      2 2 4 4
+
                     if (building.Values[i, j] == building.Values[i + 1, j] &&
                          building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
                          building.Values[i, j + 2] == building.Values[i + 1, j + 2] &&
@@ -238,18 +238,13 @@ namespace Brickwork
                         newArray[1, 2] = building.Values[i, j + 3];
                         newArray[1, 3] = building.Values[i, j + 3];
 
-                        for (var v = 0; v < 2; v++)
-                        {
-                            for (var s = 0; s < 4; s++)
-                            {
-                                building.Values[i + v, j + s] = newArray[v, s];
-                            }
-                        }
+                        CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
-                    // Transformation #3: 4 Bricks Vertical -> 4 Bricks Horizontal
-                    // ||--     --||
-                    //      ->
-                    // ||--     --||
+
+                    // Transformation #4: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // ||--     --||    | 1 2 3 3       1 1 3 4
+                    //      ->          |           ->
+                    // ||--     --||    | 1 2 4 4       2 2 3 4
                     if (building.Values[i, j] == building.Values[i + 1, j] &&
                          building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
                          building.Values[i, j + 2] != building.Values[i + 1, j + 2] &&
@@ -273,19 +268,13 @@ namespace Brickwork
                         newArray[0, 3] = building.Values[i + 1, j + 2];
                         newArray[1, 3] = building.Values[i + 1, j + 2];
 
-                        for (var v = 0; v < 2; v++)
-                        {
-                            for (var s = 0; s < 4; s++)
-                            {
-                                building.Values[i + v, j + s] = newArray[v, s];
-                            }
-                        }
+                        CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
 
-                    // Transformation #4: 4 Bricks Vertical -> 4 Bricks Horizontal
-                    // --||     ||--
-                    //      ->
-                    // --||     ||--
+                    // Transformation #5: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // --||     ||--    | 1 1 3 4       1 2 3 3
+                    //      ->          |           ->
+                    // --||     ||--    | 2 2 3 4       1 2 4 4
                     else if (building.Values[i, j] != building.Values[i + 1, j] &&
                          building.Values[i, j + 1] != building.Values[i + 1, j + 1] &&
                          building.Values[i, j + 2] == building.Values[i + 1, j + 2] &&
@@ -309,13 +298,7 @@ namespace Brickwork
                         newArray[1, 2] = building.Values[i + 1, j + 3];
                         newArray[1, 3] = building.Values[i + 1, j + 3];
 
-                        for (var v = 0; v < 2; v++)
-                        {
-                            for (var s = 0; s < 4; s++)
-                            {
-                                building.Values[i + v, j + s] = newArray[v, s];
-                            }
-                        }
+                        CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
 
                     #endregion
@@ -512,6 +495,12 @@ namespace Brickwork
             return true;
         }
 
+        /// <summary>
+        /// A specialized error check, performing a check on where all bricks are valid<br></br>
+        /// A building brick must have 2 equal numbers vertically or horizontally
+        /// </summary>
+        /// <param name="building">Building</param>
+        /// <returns>If building bricks are valid - true, else - false</returns>
         public bool IsBuildingBricksValid(Building building)
         {
             foreach (var value in building.Values)
@@ -523,6 +512,24 @@ namespace Brickwork
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Copies all values of the current module iteration into the new building values
+        /// </summary>
+        /// <param name="sourceArray">Source Array (newArray)</param>
+        /// <param name="destinationArray">Destination Array (building.Values)</param>
+        /// <param name="currentHeight">Current Height (i)</param>
+        /// <param name="currentWidth">Current Width(j)</param>
+        public void CopyModuleOfAnArray(int[,] sourceArray, int[,] destinationArray, int currentHeight, int currentWidth)
+        {
+            for (var v = 0; v < MODULE_HEIGHT; v++)
+            {
+                for (var s = 0; s < MODULE_WIDTH; s++)
+                {
+                    sourceArray[currentHeight + v, currentWidth + s] = destinationArray[v, s];
+                }
+            }
         }
 
         public void PrintArray(Building building)
