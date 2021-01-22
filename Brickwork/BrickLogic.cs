@@ -218,20 +218,23 @@ namespace Brickwork
                     if (building.Values[i, j] == building.Values[i + 1, j] &&
                          building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
                          building.Values[i, j + 2] == building.Values[i + 1, j + 2] &&
-                         building.Values[i, j + 3] == building.Values[i + 1, j + 3])
+                         building.Values[i, j + 3] == building.Values[i + 1, j + 3] &&
+                         building.Values[i, j] != building.Values[i, j + 1] &&
+                         building.Values[i, j + 2] != building.Values[i, j + 3])
                     {
                         // 1
                         newArray[0, 0] = building.Values[i + 1, j];
                         newArray[0, 1] = building.Values[i + 1, j];
 
                         // 2
-                        newArray[0, 2] = building.Values[i, j + 1];
-                        newArray[0, 3] = building.Values[i, j + 1];
+                        newArray[1, 0] = building.Values[i, j + 1];
+                        newArray[1, 1] = building.Values[i, j + 1];
 
                         // 3
-                        newArray[1, 0] = building.Values[i + 1, j + 2];
-                        newArray[1, 1] = building.Values[i + 1, j + 2];
+                        newArray[0, 2] = building.Values[i + 1, j + 2];
+                        newArray[0, 3] = building.Values[i + 1, j + 2];
 
+                        // 4
                         newArray[1, 2] = building.Values[i, j + 3];
                         newArray[1, 3] = building.Values[i, j + 3];
 
@@ -314,7 +317,7 @@ namespace Brickwork
                             }
                         }
                     }
-                  
+
                     #endregion
                 }
             }
