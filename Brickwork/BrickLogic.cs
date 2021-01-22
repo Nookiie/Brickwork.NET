@@ -11,7 +11,7 @@ namespace Brickwork
 {
     public class BrickLogic
     {
-        // Configuration Constants
+        #region Configuration Constants
 
         #region Volatile (Application will not work properly if changed)
 
@@ -26,7 +26,9 @@ namespace Brickwork
         private static readonly string NOT_VALID_BUILDING_STRING = "Building is not valid!";
         private static readonly string NOT_VALID_INPUT_STRING = "Input is not valid!";
 
-        #endregion 
+        #endregion
+
+        #endregion
 
         public void Initialize()
         {
@@ -57,14 +59,66 @@ namespace Brickwork
             {
                 for (var j = 0; j < building.Width - 1; j += MODULE_WIDTH)
                 {
-                    // Preliminary Transformations are done with certain templates, where dynamic operations have to be made
-                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
+                    
+                    // Preliminary Minimal Transformations are done, in case of Width being a number that can not be divided by 4
                     #region Preliminary Transformations
 
-                    // Preliminary Transformation #1 Left Bricks Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template #2
-                    // --|...|      |--|
-                    //          -> 
-                    // --|...|      |--|
+                    // Preliminary Minimal Transformation #1 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
+                    // --      ||
+                    //     -> 
+                    // --      ||
+
+                    if (building.Values[i, j] == building.Values[i, j + 1] &&
+                        (building.Values[i + 1, j] != building.Values[i, j] &&
+                        building.Values[i + 1, j + 1] == building.Values[i + 1, j]) &&
+                        building.Width % 4 != 0 && (j == 0 || j == building.Width - 2))
+                    {
+                        building.Values[i + 1, j] = building.Values[i, j];
+                        building.Values[i, j + 1] = building.Values[i + 1, j + 1];
+
+                        if (j == 0)
+                        {
+                            j = -2;
+                            continue;
+                        }
+
+                        if (j == building.Width - 2)
+                        {
+                            continue;
+                        }
+                    }
+
+                    // Preliminary Minimal Transformation #2 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
+                    // ||      --
+                    //     -> 
+                    // ||      --
+
+                    else if (building.Values[i, j] == building.Values[i + 1, j] &&
+                        (building.Values[i, j + 1] != building.Values[i, j] &&
+                        building.Values[i, j + 1] == building.Values[i + 1, j + 1]) &&
+                        building.Width % 4 != 0 && (j == 0 || j == building.Width - 2))
+                    {
+                        building.Values[i, j + 1] = building.Values[i, j];
+                        building.Values[i + 1, j] = building.Values[i + 1, j + 1];
+
+                        if (j == 0)
+                        {
+                            j = -2;
+                            continue;
+                        }
+
+                        if (j == building.Width - 2)
+                        {
+                            continue;
+                        }
+                    }
+
+
+                    // Preliminary Transformation #1: Left Brick Vertical, Right Brick Far Away Vertical, 2 Bricks Horizontal -> Template Transformation #2
+                    // |--...|      |--|    | 1 2 2...4         1 2 2 4   
+                    //          ->          |              ->
+                    // |--...|      |--|    | 1 3 3...4         1 3 3 4
+
                     if (building.Values[i, j] != building.Values[i, j + 1] &&
                         (building.Values[i + 1, j] == building.Values[i, j] &&
                         building.Values[i, j + 1] == building.Values[i, j + 2]) &&
@@ -77,36 +131,58 @@ namespace Brickwork
                             {
                                 building.Values[i, j + 3] = building.Values[i, g];
                                 building.Values[i + 1, j + 3] = building.Values[i, g];
+
+                                // Compatibility Fixes in case of {even number} x {number that can not divide by 4, like 6 or 10}
+                                if (building.Width % 4 != 0)
+                                {
+                                    building.Values[i, g] = building.Values[i, g - 1];
+                                    building.Values[i + 1, g] = building.Values[i + 1, g - 1];
+                                }
+
                                 break;
                             }
                         }
 
-                        for (var g = 4; g < building.Width - 2; g += 3)
+                        if (building.Width % 4 == 0)
                         {
-                            if (g == 4)
+                            for (var g = 4; g < building.Width - 2; g += 3)
                             {
-                                building.Values[i, g + 1] = building.Values[i, g];
-                                building.Values[i + 1, g + 1] = building.Values[i + 1, g];
+                                if (g == 4)
+                                {
+                                    building.Values[i, g + 1] = building.Values[i, g];
+                                    building.Values[i + 1, g + 1] = building.Values[i + 1, g];
 
-                                building.Values[i, g + 3] = building.Values[i, g + 2];
-                                building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
+                                    building.Values[i, g + 3] = building.Values[i, g + 2];
+                                    building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
+                                }
+                                else
+                                {
+                                    building.Values[i, g + 1] = building.Values[i, g];
+                                    building.Values[i + 1, g + 1] = building.Values[i + 1, g];
+
+                                    building.Values[i, g + 3] = building.Values[i, g + 2];
+                                    building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
+                                }
                             }
-                            else
+                        }
+                        else
+                        {
+                            for (var g = 4; g < building.Width - 1; g += 2)
                             {
-                                building.Values[i, g + 1] = building.Values[i, g];
-                                building.Values[i + 1, g + 1] = building.Values[i + 1, g];
 
-                                building.Values[i, g + 3] = building.Values[i, g + 2];
-                                building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
                             }
                         }
                     }
 
-                    // Preliminary Transformation #2: Left Bricks Vertical, Right Brick Far Away Vertical, 2 Bricks Horizontal -> Template #2
-                    // |--...|      |--|
-                    //          -> 
-                    // |--...|      |--|
-                    if (building.Values[i, j] != building.Values[i + 1, j] &&
+                    // Preliminary Transformations are done with certain templates, where dynamic operations have to be made
+                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
+
+                    // Preliminary Transformation #3 Left Brick Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template Transformation #2
+                    // --|...|      |--|    | 1 1 3...4      4 1 1 3
+                    //          ->          |            ->             
+                    // --|...|      |--|    | 2 2 3...4      4 2 2 3
+
+                    else if (building.Values[i, j] != building.Values[i + 1, j] &&
                         (building.Values[i, j] == building.Values[i, j + 1] &&
                         building.Values[i, j + 1] != building.Values[i, j + 2]) &&
                         building.Values[i + 1, j + 2] == building.Values[i, j + 2] &&
@@ -376,6 +452,8 @@ namespace Brickwork
 
             #endregion
 
+            #region Console Input
+
             var buildingParameters = Console.ReadLine()
                 .Split(' ');
 
@@ -425,6 +503,8 @@ namespace Brickwork
             }
 
             return true;
+
+            #endregion
         }
 
         /// <summary>
