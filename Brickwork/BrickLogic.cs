@@ -49,16 +49,15 @@ namespace Brickwork
                 {
                     #region Preliminary Transformations
 
-                    // Preliminary Transformation 
-                    // into Transformation #1
+                    // Preliminary Transformation #1 Left Bricks Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template #2
                     // --|...|      |--|
                     //          -> 
                     // --|...|      |--|
                     if (building.Values[i, j] != building.Values[i, j + 1] &&
                         (building.Values[i + 1, j] == building.Values[i, j] &&
                         building.Values[i, j + 1] == building.Values[i, j + 2]) &&
-                        building.Values[i + 1, j + 1] == building.Values[i + 1, j + 2] && 
-                        building.Values[i + 1, j + 3] != building.Values[i,j + 3])
+                        building.Values[i + 1, j + 1] == building.Values[i + 1, j + 2] &&
+                        building.Values[i, j + 3] != building.Values[i + 1, j + 3])
                     {
                         for (var g = 3; g < building.Width; g++)
                         {
@@ -74,8 +73,8 @@ namespace Brickwork
                         {
                             if (g == 4)
                             {
-                                building.Values[i, g + 2] = building.Values[i, g + 1];
-                                building.Values[i + 1, g + 2] = building.Values[i + 1, g + 1];
+                                building.Values[i, g + 1] = building.Values[i, g];
+                                building.Values[i + 1, g + 1] = building.Values[i + 1, g];
 
                                 building.Values[i, g + 3] = building.Values[i, g + 2];
                                 building.Values[i + 1, g + 3] = building.Values[i + 1, g + 2];
@@ -91,16 +90,16 @@ namespace Brickwork
                         }
                     }
 
-                    // Preliminary Transformation 
-                    // into Transformation #1
+                    // Preliminary Transformation #2: Left Bricks Vertical, Right Brick Far Away Vertical, 2 Bricks Horizontal -> Template #2
                     // |--...|      |--|
                     //          -> 
                     // |--...|      |--|
                     if (building.Values[i, j] != building.Values[i + 1, j] &&
                         (building.Values[i, j] == building.Values[i, j + 1] &&
                         building.Values[i, j + 1] != building.Values[i, j + 2]) &&
-                        building.Values[i + 1, j + 2] == building.Values[i, j + 2] && 
-                        building.Values[i,j + 2] != building.Values[i, j + 3])
+                        building.Values[i + 1, j + 2] == building.Values[i, j + 2] &&
+                        building.Values[i, j + 2] != building.Values[i, j + 3] &&
+                        building.Values[i, j + 3] != building.Values[i + 1, j + 3])
                     {
                         for (var g = 3; g < building.Width; g++)
                         {
@@ -132,14 +131,20 @@ namespace Brickwork
                             }
                         }
                     }
-
                     #endregion
 
-                    // Transformation #1: First Brick: Horizontal -> Vertical (4 Horizontal Bricks into 2 Vertical 2 Horizontal)
+                    #region Main Transformations
+
+                    // Transformation #1: 4 Bricks Horizontal -> 2 Bricks Vertical, 2 Bricks Horizontal
                     // ----       |--|
                     //       ->
                     // ----       |--|   
-                    if (building.Values[i, j] == building.Values[i, j + 1])
+
+                    if (building.Values[i, j] == building.Values[i, j + 1] &&
+                        building.Values[i, j + 2] == building.Values[i, j + 3] &&
+                        building.Values[i, j + 2] == building.Values[i, j + 3] &&
+                        building.Values[i + 1, j] == building.Values[i + 1, j + 1] &&
+                        building.Values[i + 1, j + 2] == building.Values[i + 1, j + 3])
                     {
                         // 2
                         newArray[0, 0] = building.Values[i, j + 2];
@@ -165,43 +170,156 @@ namespace Brickwork
                             }
                         }
                     }
-                    else
+
+                    // Transformation #5: 2 Bricks Vertical, 2 Bricks Horizontal -> 4 Bricks Horizontal 
+                    // |--|       ----
+                    //       ->
+                    // |--|       ----
+
+                    else if (building.Values[i, j] == building.Values[i + 1, j] &&
+                        building.Values[i, j + 1] != building.Values[i + 1, j + 1] &&
+                        building.Values[i, j + 2] != building.Values[i + 1, j + 1] &&
+                        building.Values[i, j + 1] == building.Values[i, j + 2] &&
+                        building.Values[i, j + 3] == building.Values[i + 1, j + 3] &&
+                        building.Values[i, j + 2] != building.Values[i + 1, j + 2])
                     {
-                        // Transformation #2: First Brick: Vertical -> Horizontal (4 bricks at a time)
-                        // |--|       ----
-                        //       ->
-                        // |--|       ----
-                        if (building.Values[i + 1, j] == building.Values[i, j])
+
+                        // 1
+                        newArray[0, 0] = building.Values[i, j + 1];
+                        newArray[0, 1] = building.Values[i, j + 1];
+
+                        // 2
+                        newArray[0, 2] = building.Values[i, j];
+                        newArray[0, 3] = building.Values[i, j];
+
+                        // 3
+                        newArray[1, 0] = building.Values[i + 1, j + 1];
+                        newArray[1, 1] = building.Values[i + 1, j + 1];
+
+                        // 4
+                        newArray[1, 2] = building.Values[i, j + 3];
+                        newArray[1, 3] = building.Values[i, j + 3];
+
+
+                        // Copy All element values at the current block iteraton into the new building
+                        for (var v = 0; v < 2; v++)
                         {
-                            // 1
-                            newArray[0, 0] = building.Values[i, j + 1];
-                            newArray[0, 1] = building.Values[i, j + 1];
-
-                            // 2
-                            newArray[0, 2] = building.Values[i, j];
-                            newArray[0, 3] = building.Values[i, j];
-
-                            // 3
-                            newArray[1, 0] = building.Values[i + 1, j + 1];
-                            newArray[1, 1] = building.Values[i + 1, j + 1];
-
-                            // 4
-                            newArray[1, 2] = building.Values[i, j + 3];
-                            newArray[1, 3] = building.Values[i, j + 3];
-
-                            for (var v = 0; v < 2; v++)
+                            for (var s = 0; s < 4; s++)
                             {
-                                for (var s = 0; s < 4; s++)
-                                {
-                                    building.Values[i + v, j + s] = newArray[v, s];
-                                }
+                                building.Values[i + v, j + s] = newArray[v, s];
                             }
                         }
                     }
+
+                    // Transformation #2: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // ||||     ----
+                    //      ->
+                    // ||||     ----
+                    if (building.Values[i, j] == building.Values[i + 1, j] &&
+                         building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
+                         building.Values[i, j + 2] == building.Values[i + 1, j + 2] &&
+                         building.Values[i, j + 3] == building.Values[i + 1, j + 3])
+                    {
+                        // 1
+                        newArray[0, 0] = building.Values[i + 1, j];
+                        newArray[0, 1] = building.Values[i + 1, j];
+
+                        // 2
+                        newArray[0, 2] = building.Values[i, j + 1];
+                        newArray[0, 3] = building.Values[i, j + 1];
+
+                        // 3
+                        newArray[1, 0] = building.Values[i + 1, j + 2];
+                        newArray[1, 1] = building.Values[i + 1, j + 2];
+
+                        newArray[1, 2] = building.Values[i, j + 3];
+                        newArray[1, 3] = building.Values[i, j + 3];
+
+                        for (var v = 0; v < 2; v++)
+                        {
+                            for (var s = 0; s < 4; s++)
+                            {
+                                building.Values[i + v, j + s] = newArray[v, s];
+                            }
+                        }
+                    }
+                    // Transformation #3: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // ||--     --||
+                    //      ->
+                    // ||--     --||
+                    if (building.Values[i, j] == building.Values[i + 1, j] &&
+                         building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
+                         building.Values[i, j + 2] != building.Values[i + 1, j + 2] &&
+                         building.Values[i, j + 3] != building.Values[i + 1, j + 3] &&
+                         building.Values[i, j] != building.Values[i, j + 2] &&
+                         building.Values[i, j] != building.Values[i, j + 3])
+                    {
+                        // 1
+                        newArray[0, 0] = building.Values[i, j];
+                        newArray[0, 1] = building.Values[i, j];
+
+                        // 2
+                        newArray[1, 0] = building.Values[i, j + 1];
+                        newArray[1, 1] = building.Values[i, j + 1];
+
+                        // 3
+                        newArray[0, 2] = building.Values[i, j + 2];
+                        newArray[1, 2] = building.Values[i, j + 2];
+
+                        // 3
+                        newArray[0, 3] = building.Values[i + 1, j + 2];
+                        newArray[1, 3] = building.Values[i + 1, j + 2];
+
+                        for (var v = 0; v < 2; v++)
+                        {
+                            for (var s = 0; s < 4; s++)
+                            {
+                                building.Values[i + v, j + s] = newArray[v, s];
+                            }
+                        }
+                    }
+
+                    // Transformation #4: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // --||     ||--
+                    //      ->
+                    // --||     ||--
+                    else if (building.Values[i, j] != building.Values[i + 1, j] &&
+                         building.Values[i, j + 1] != building.Values[i + 1, j + 1] &&
+                         building.Values[i, j + 2] == building.Values[i + 1, j + 2] &&
+                         building.Values[i, j + 3] == building.Values[i + 1, j + 3] &&
+                         building.Values[i, j] != building.Values[i, j + 2] &&
+                         building.Values[i, j] != building.Values[i, j + 3])
+                    {
+                        // 1
+                        newArray[0, 0] = building.Values[i, j];
+                        newArray[1, 0] = building.Values[i, j];
+
+                        // 2
+                        newArray[0, 1] = building.Values[i + 1, j];
+                        newArray[1, 1] = building.Values[i + 1, j];
+
+                        // 3
+                        newArray[0, 2] = building.Values[i, j + 2];
+                        newArray[0, 3] = building.Values[i, j + 2];
+
+                        // 4
+                        newArray[1, 2] = building.Values[i + 1, j + 3];
+                        newArray[1, 3] = building.Values[i + 1, j + 3];
+
+                        for (var v = 0; v < 2; v++)
+                        {
+                            for (var s = 0; s < 4; s++)
+                            {
+                                building.Values[i + v, j + s] = newArray[v, s];
+                            }
+                        }
+                    }
+                  
+                    #endregion
                 }
             }
 
-            PrintList(building);
+            PrintArray(building);
         }
 
         /// <summary>
@@ -404,7 +522,7 @@ namespace Brickwork
             return true;
         }
 
-        public void PrintList(Building building)
+        public void PrintArray(Building building)
         {
             for (var i = 0; i < building.Width; i++)
             {
