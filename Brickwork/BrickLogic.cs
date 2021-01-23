@@ -453,7 +453,8 @@ namespace Brickwork
 
             if (readFile)
             {
-                var input = File.ReadAllLines("input.txt");
+                var inputTextFileLocation = @"../../../input.txt";
+                var input = File.ReadAllLines(inputTextFileLocation);
 
                 var buildingParametersText = input[0]
                     .Split(' ');
