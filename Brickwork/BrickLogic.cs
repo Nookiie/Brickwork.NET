@@ -34,18 +34,26 @@ namespace Brickwork
         public void Initialize()
         {
             var building = new Building();
-            var readFile = true;
+
+            // Change to true to read from input.txt file
+            // Change to false to read from console input
+            var readFile = false;
 
             while (true)
             {
                 if (!GenerateInput(building, readFile) || !CheckBricks(building))
                 {
                     Console.WriteLine("Resetting...\n");
+
+                    if (readFile)
+                    {
+                        Console.ReadKey();
+                    }
+
                     continue;
                 }
 
                 GenerateOutput(building);
-
                 if (readFile)
                 {
                     Console.ReadKey();
@@ -475,6 +483,12 @@ namespace Brickwork
                 var buildingParametersText = input[0]
                     .Split(' ');
 
+                if (buildingParametersText.Length != 2)
+                {
+                    Console.WriteLine(NOT_VALID_INPUT_STRING);
+                    return false;
+                }
+
                 var buildingNumbersFile = new Collection<int>();
 
                 foreach (var numberString in buildingParametersText)
@@ -504,6 +518,12 @@ namespace Brickwork
 
                     for (int j = 0; j < building.Width; j++)
                     {
+                        if (numbersString.Length != building.Width)
+                        {
+                            Console.WriteLine(NOT_VALID_INPUT_STRING);
+                            return false;
+                        }
+
                         if (!int.TryParse(numbersString[j], out int value))
                         {
                             Console.WriteLine(NOT_VALID_INPUT_STRING);
