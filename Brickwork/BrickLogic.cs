@@ -76,7 +76,7 @@ namespace Brickwork
                     // |--...|      |--|...{insertionVerticalBrickX + 1}
                     //          ->  
                     // |--...|      |--|...{insertionVerticalBrickX + 1}
-                    if (j < building.Width - 2 && isPreliminaryTransformed)
+                    if (j <= building.Width - 2 && isPreliminaryTransformed)
                     {
                         j = insertionVerticalBrickX + 1;
                         isPreliminaryTransformed = false;
