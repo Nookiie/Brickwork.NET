@@ -33,18 +33,22 @@ namespace Brickwork
         public void Initialize()
         {
             var building = new Building();
+            var readFile = false;
 
             while (true)
             {
-                if (!GenerateInput(building, true) || !GenerateBricks(building) || !IsBuildingBricksValid(building))
+                if (!GenerateInput(building, readFile) || !CheckBricks(building))
                 {
-                    Console.WriteLine("Building is not valid!\nResetting...");
-                    Console.ReadKey();
+                    Console.WriteLine("Resetting...\n");
                     continue;
                 }
 
                 GenerateOutput(building);
-                Console.ReadKey();
+
+                if (readFile)
+                {
+                    Console.ReadKey();
+                }
             }
         }
 
@@ -52,7 +56,7 @@ namespace Brickwork
         /// Loads Output, which is triggered after <see cref="GenerateInput(Building)"/> based on exercise instructions<br></br>
         /// Contains the main logic component for this exercises, which revolves around performing transformations on pre-selected templates<br></br>
         /// </summary>
-        public void GenerateOutput(Building building)
+        private void GenerateOutput(Building building)
         {
             var newArray = new int[MODULE_HEIGHT, MODULE_WIDTH];
             var isPreliminaryTransformed = false;
@@ -213,7 +217,7 @@ namespace Brickwork
                             }
                         }
 
-                       
+
                         isPreliminaryTransformed = true;
                     }
 
@@ -444,14 +448,15 @@ namespace Brickwork
         /// This includes width and height and brick layers as per exercise example guide<br></br>
         /// </summary>
         /// <param name="building">Brick to Load Data Into</param>
-        /// <param name="readFile">Boolean whether or not to use the file parameter read functionality</param>
-        public bool GenerateInput(Building building, bool readFile = false)
+        /// <param name="mustReadFile">Boolean whether or not to use the file parameter read functionality</param>
+        private bool GenerateInput(Building building, bool mustReadFile = false)
         {
-            // Automatic Reading from file, will read an input.txt file in the binaries and execute
+            // Automatic Reading from file, will read an input.txt file in the working directory and execute
             // Used for quick testing and debugging
+
             #region File Read
 
-            if (readFile)
+            if (mustReadFile)
             {
                 var inputTextFileLocation = @"../../../input.txt";
                 var input = File.ReadAllLines(inputTextFileLocation);
@@ -502,9 +507,10 @@ namespace Brickwork
             }
             #endregion
 
+            #region Console Input
+
             else
             {
-                #region Console Input
 
                 var buildingParameters = Console.ReadLine()
                     .Split(' ');
@@ -544,6 +550,12 @@ namespace Brickwork
 
                     for (int j = 0; j < building.Width; j++)
                     {
+                        if (valueString.Length != building.Width)
+                        {
+                            Console.WriteLine(NOT_VALID_INPUT_STRING);
+                            return false;
+                        }
+
                         if (!int.TryParse(valueString[j], out int value))
                         {
                             Console.WriteLine(NOT_VALID_INPUT_STRING);
@@ -562,44 +574,50 @@ namespace Brickwork
         }
 
         /// <summary>
-        /// Determines whether the brick is valid and can be executed through the method <see cref="GenerateOutput(Building)"/>.<br></br>
+        /// Determines whether all bricks are valid and can be executed through the method <see cref="GenerateOutput(Building)"/>.<br></br>
         /// Checks include whether the brick's parameters are valid, according to the exercise.<br></br>
         /// Also provides details for every <see cref="Brick"/> in the <see cref="Building"/>
         /// </summary>
         /// <param name="building">Brick</param>
         /// <returns></returns>
-        public bool GenerateBricks(Building building)
+        private bool CheckBricks(Building building, bool mustGenerateBrickEntities = true)
         {
             for (var i = 0; i < building.Height; i += 2)
             {
-                for (var j = 0; j < building.Width - 1; j++)
+                for (var j = 0; j < building.Width; j++)
                 {
-                    // Scanning for the last row in the matrix for horizontal bricks
-                    if (building.Height - 1 == i)
+                    if (building.Values[i, j] == building.Values[i + 1, j])
                     {
-                        if (building.Values[i, j] == building.Values[i, j + 1])
-                        {
-                            building.Bricks.Add(new Brick(i, j, i, j + 1, building.Values[i, j], BrickType.Horizontal));
-                        }
-                    }
-                    else
-                    {
-                        if (building.Values[i, j] == building.Values[i + 1, j])
+                        if (mustGenerateBrickEntities)
                         {
                             building.Bricks.Add(new Brick(i, j, i + 1, j, building.Values[i, j], BrickType.Vertical));
                         }
-                        else if (building.Values[i, j] == building.Values[i, j + 1])
+                    }
+                    else if (building.Values[i, j] == building.Values[i, j + 1])
+                    {
+                        if (mustGenerateBrickEntities)
                         {
                             building.Bricks.Add(new Brick(i, j, i, j + 1, building.Values[i, j], BrickType.Horizontal));
-                            j++;
+
+                            if (building.Values[i + 1, j] == building.Values[i + 1, j + 1])
+                            {
+                                building.Bricks.Add(new Brick(i + 1, j, i + 1, j + 1, building.Values[i + 1, j], BrickType.Horizontal));
+                            }
                         }
-                        else
-                        {
-                            Console.WriteLine($"Invalid Brick Values on Coordinates:{i} {j}");
-                            return false;
-                        }
+
+                        j++;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Invalid Brick Values on Coordinates:{i} {j}");
+                        return false;
                     }
                 }
+            }
+
+            if (!IsBuildingBricksValid(building))
+            {
+                return false;
             }
 
             return true;
@@ -611,7 +629,7 @@ namespace Brickwork
         /// </summary>
         /// <param name="building">Building</param>
         /// <returns></returns>
-        public bool IsBuildingValid(Building building)
+        private bool IsBuildingValid(Building building)
         {
             if (building.Width % 2 != 0 || building.Height % 2 != 0)
             {
@@ -625,6 +643,12 @@ namespace Brickwork
                 return false;
             }
 
+            if (building.Width < building.Height)
+            {
+                Console.WriteLine("-1");
+                return false;
+            }
+
             return true;
         }
 
@@ -634,7 +658,7 @@ namespace Brickwork
         /// </summary>
         /// <param name="building">Building</param>
         /// <returns>If building bricks are valid - true, else - false</returns>
-        public bool IsBuildingBricksValid(Building building)
+        private bool IsBuildingBricksValid(Building building)
         {
             foreach (var value in building.Values)
             {
@@ -654,7 +678,7 @@ namespace Brickwork
         /// <param name="destinationArray">Destination Array (building.Values)</param>
         /// <param name="currentHeight">Current Height (i)</param>
         /// <param name="currentWidth">Current Width(j)</param>
-        public void CopyModuleOfAnArray(int[,] sourceArray, int[,] destinationArray, int currentHeight, int currentWidth)
+        private void CopyModuleOfAnArray(int[,] sourceArray, int[,] destinationArray, int currentHeight, int currentWidth)
         {
             for (var v = 0; v < MODULE_HEIGHT; v++)
             {
@@ -665,7 +689,7 @@ namespace Brickwork
             }
         }
 
-        public void PrintArray(Building building)
+        private void PrintArray(Building building)
         {
             for (var i = 0; i < building.Width; i++)
             {
