@@ -9,7 +9,8 @@ namespace Brickwork
     public class Building
     {
         /// <summary>
-        /// Building's Values - includes all values in the form of a matrix, containing coordinates
+        /// Building's Values - includes all values in the form of a matrix<br></br>
+        /// The values of the 2D matrix are coordinates (Y - height and X - width, respectively)
         /// </summary>
         public int[,] Values { get; set; }
 

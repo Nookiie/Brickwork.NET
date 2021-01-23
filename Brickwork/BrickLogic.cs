@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Brickwork
 {
@@ -53,6 +54,7 @@ namespace Brickwork
         }
 
         /// <summary>
+        /// The Main Logic of this exercise<br></br>
         /// Loads Output, which is triggered after <see cref="GenerateInput(Building)"/> based on exercise instructions<br></br>
         /// Contains the main logic component for this exercises, which revolves around performing transformations on pre-selected templates<br></br>
         /// </summary>
@@ -85,6 +87,8 @@ namespace Brickwork
                         }
                     }
 
+
+                    
                     // End Minimal Transformations are done, in case of Width being a number that can not be divided by 4
                     // For instance, let's say we have the following building (2x6):
                     // 1 1 2 2 5 5
@@ -99,9 +103,7 @@ namespace Brickwork
                     // Hence we have to execute End Minimal Transformations that solve this issue, where only the 2 final bricks will be transformed 
                     // and the iteration will be force skipped
 
-                    #region Replacement Transformations
-
-                    #region Minimal Transformations
+                    #region End Minimal Transformations
 
                     // End Minimal Transformation #1 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
                     // --      ||
@@ -166,6 +168,8 @@ namespace Brickwork
                     }
 
                     #endregion
+
+                    #region Replacement Transformations
 
                     // Replacement Transformations are done with certain templates, where dynamic operations have to be made
                     // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
@@ -316,7 +320,7 @@ namespace Brickwork
                         newArray[0, 3] = building.Values[i + 1, j + 2];
                         newArray[1, 3] = building.Values[i + 1, j + 2];
 
-                        CopyModuleOfAnArray(building.Values, newArray, i, j);
+                        CopyModuleValuesIntoBuilding(building.Values, newArray, i, j);
                     }
 
                     // Transformation #2: 4 Bricks Vertical -> 4 Bricks Horizontal
@@ -347,7 +351,7 @@ namespace Brickwork
                         newArray[1, 2] = building.Values[i, j + 3];
                         newArray[1, 3] = building.Values[i, j + 3];
 
-                        CopyModuleOfAnArray(building.Values, newArray, i, j);
+                        CopyModuleValuesIntoBuilding(building.Values, newArray, i, j);
                     }
 
 
@@ -379,7 +383,7 @@ namespace Brickwork
                         newArray[1, 2] = building.Values[i, j + 3];
                         newArray[1, 3] = building.Values[i, j + 3];
 
-                        CopyModuleOfAnArray(building.Values, newArray, i, j);
+                        CopyModuleValuesIntoBuilding(building.Values, newArray, i, j);
                     }
 
 
@@ -410,7 +414,7 @@ namespace Brickwork
                         newArray[0, 3] = building.Values[i + 1, j + 2];
                         newArray[1, 3] = building.Values[i + 1, j + 2];
 
-                        CopyModuleOfAnArray(building.Values, newArray, i, j);
+                        CopyModuleValuesIntoBuilding(building.Values, newArray, i, j);
                     }
 
                     // Transformation #5: 4 Bricks Vertical -> 4 Bricks Horizontal
@@ -440,7 +444,7 @@ namespace Brickwork
                         newArray[1, 2] = building.Values[i + 1, j + 3];
                         newArray[1, 3] = building.Values[i + 1, j + 3];
 
-                        CopyModuleOfAnArray(building.Values, newArray, i, j);
+                        CopyModuleValuesIntoBuilding(building.Values, newArray, i, j);
                     }
 
                     #endregion
@@ -458,14 +462,14 @@ namespace Brickwork
         /// <param name="mustReadFile">Boolean whether or not to use the file parameter read functionality</param>
         private bool GenerateInput(Building building, bool mustReadFile = false)
         {
-            // Automatic Reading from file, will read an input.txt file in the working directory and execute
+            // Automatic read from file, will read an input.txt file in the working directory and execute
             // Used for quick testing and debugging
 
             #region File Read
 
             if (mustReadFile)
             {
-                var inputTextFileLocation = @"../../../input.txt";
+                var inputTextFileLocation = $"{Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory)}/../../../input.txt";
                 var input = File.ReadAllLines(inputTextFileLocation);
 
                 var buildingParametersText = input[0]
@@ -622,7 +626,7 @@ namespace Brickwork
                 }
             }
 
-            if (!IsBuildingBricksValid(building))
+            if (!IsBuildingBrickValuesValid(building))
             {
                 return false;
             }
@@ -665,7 +669,7 @@ namespace Brickwork
         /// </summary>
         /// <param name="building">Building</param>
         /// <returns>If building bricks are valid - true, else - false</returns>
-        private bool IsBuildingBricksValid(Building building)
+        private bool IsBuildingBrickValuesValid(Building building)
         {
             foreach (var value in building.Values)
             {
@@ -685,7 +689,7 @@ namespace Brickwork
         /// <param name="destinationArray">Destination Array (building.Values)</param>
         /// <param name="currentHeight">Current Height (i)</param>
         /// <param name="currentWidth">Current Width(j)</param>
-        private void CopyModuleOfAnArray(int[,] sourceArray, int[,] destinationArray, int currentHeight, int currentWidth)
+        private void CopyModuleValuesIntoBuilding(int[,] sourceArray, int[,] destinationArray, int currentHeight, int currentWidth)
         {
             for (var v = 0; v < MODULE_HEIGHT; v++)
             {

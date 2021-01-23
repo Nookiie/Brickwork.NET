@@ -6,7 +6,7 @@ namespace Brickwork
     {
         public static void Main(string[] args)
         {
-            BrickLogic logic = new BrickLogic();
+            var logic = new BrickLogic();
             logic.Initialize();
         }
     }

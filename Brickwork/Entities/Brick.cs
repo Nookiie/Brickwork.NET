@@ -24,8 +24,16 @@ namespace Brickwork.Entities
 
         public int Value { get; set; }
 
+        /// <summary>
+        /// BrickType - Can be Vertical or Horizontal, depending on the coordinates<br></br>
+        /// Non-funcational, used solely to help with debugging and insights
+        /// </summary>
         public BrickType BrickType { get; set; }
 
+        /// <summary>
+        /// Coordinates for the Brick alongside the Building<br></br>
+        /// Format: value1Y, value1X, value2Y, value2X
+        /// </summary>
         public ValueTuple<int, int, int, int> Coordinates { get; set; }
     }
 }
