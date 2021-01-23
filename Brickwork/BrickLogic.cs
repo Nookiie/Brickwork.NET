@@ -36,9 +36,10 @@ namespace Brickwork
 
             while (true)
             {
-                if (!GenerateInput(building, false) || !GenerateBricks(building) || !IsBuildingBricksValid(building))
+                if (!GenerateInput(building, true) || !GenerateBricks(building) || !IsBuildingBricksValid(building))
                 {
                     Console.WriteLine("Building is not valid!\nResetting...");
+                    Console.ReadKey();
                     continue;
                 }
 
@@ -54,21 +55,46 @@ namespace Brickwork
         public void GenerateOutput(Building building)
         {
             var newArray = new int[MODULE_HEIGHT, MODULE_WIDTH];
-            var preliminaryTransformed = false;
+            var isPreliminaryTransformed = false;
+            int insertionVerticalBrickX = 0;
 
             for (var i = 0; i < building.Height; i += MODULE_HEIGHT)
             {
                 for (var j = 0; j < building.Width - 1; j += MODULE_WIDTH)
                 {
-                    if (preliminaryTransformed)
+                    // Skip until the end of the placement where the new Array was received
+                    // Once a preliminary transformation has been detected in the previous loop, the horizontal iteration will skip ahead of 
+                    // the detected horizontal position of the next vertical brick
+
+                    //    {insertionVerticalBrickX}
+                    // |--...|      |--|...{insertionVerticalBrickX + 1}
+                    //          ->  
+                    // |--...|      |--|...{insertionVerticalBrickX + 1}
+                    if (j < building.Width - 2 && isPreliminaryTransformed)
                     {
-                        break;
+                        j = insertionVerticalBrickX + 1;
+                        isPreliminaryTransformed = false;
                     }
 
-                    // Preliminary Minimal Transformations are done, in case of Width being a number that can not be divided by 4
-                    #region Preliminary Transformations
+                    // End Minimal Transformations are done, in case of Width being a number that can not be divided by 4
+                    // For instance, let's say we have the following building (2x6):
+                    // 1 1 2 2 5 5
+                    // 3 3 4 4 6 6
 
-                    // Preliminary Minimal Transformation #1 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
+                    // The Building will then cut it down into 2 modules
+                    // 1 1 2 2 | 5 5
+                    // 3 3 4 4 | 6 6
+
+                    // However, because the modules are only 2x4, proceeding with the next block (5 5 | 6 6) 
+                    // will cause an IndexOutOfRange Exception in the Array
+                    // Hence we have to execute End Minimal Transformations that solve this issue, where only the 2 final bricks will be transformed 
+                    // and the iteration will be force skipped
+
+                    #region Replacement Transformations
+
+                    #region Minimal Transformations
+
+                    // End Minimal Transformation #1 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
                     // --      ||
                     //     -> 
                     // --      ||
@@ -76,7 +102,7 @@ namespace Brickwork
                     if (building.Values[i, j] == building.Values[i, j + 1] &&
                         (building.Values[i + 1, j] != building.Values[i, j] &&
                         building.Values[i + 1, j + 1] == building.Values[i + 1, j]) &&
-                        building.Width % 4 != 0 && (j == building.Width - 2))
+                        j == building.Width - 2)
                     {
                         //if (j == 0)
                         //{
@@ -99,7 +125,7 @@ namespace Brickwork
                         }
                     }
 
-                    // Preliminary Minimal Transformation #2 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
+                    // End Minimal Transformation #2 (for width % 4 != 0 only): 2 Bricks Vertical -> 2 Bricks Horizontal
                     // ||      --
                     //     -> 
                     // ||      --
@@ -107,7 +133,7 @@ namespace Brickwork
                     else if (building.Values[i, j] == building.Values[i + 1, j] &&
                         building.Values[i, j + 1] != building.Values[i, j] &&
                         building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
-                        building.Width % 4 != 0 && (j == building.Width - 2))
+                        j == building.Width - 2)
                     {
                         //if (j == 0)
                         //{
@@ -130,10 +156,13 @@ namespace Brickwork
                         }
                     }
 
-                    // Preliminary Transformations are done with certain templates, where dynamic operations have to be made
-                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
+                    #endregion
 
-                    // Preliminary Transformation #1: Left Brick Vertical, Right Brick Far Away Vertical, 2 Bricks Horizontal -> Template Transformation #2
+                    // Replacement Transformations are done with certain templates, where dynamic operations have to be made
+                    // For instance the insertion of a vertical brick at a specified index, so that it can match one of the main transformations
+                    // then continue on after the inserted vertical brick
+
+                    // Replacement Transformation #1: Left Brick Vertical, Right Brick Far Away Vertical, 2 Bricks Horizontal -> Template Transformation #2
                     // |--...|      |--|    | 1 2 2...4         1 2 2 4   
                     //          ->          |              ->
                     // |--...|      |--|    | 1 3 3...4         1 3 3 4
@@ -148,6 +177,8 @@ namespace Brickwork
                         {
                             if (building.Values[i, g] == building.Values[i + 1, g])
                             {
+                                insertionVerticalBrickX = g;
+
                                 building.Values[i, j + 3] = building.Values[i, g];
                                 building.Values[i + 1, j + 3] = building.Values[i, g];
 
@@ -182,11 +213,12 @@ namespace Brickwork
                             }
                         }
 
-                        preliminaryTransformed = true;
+                       
+                        isPreliminaryTransformed = true;
                     }
 
 
-                    // Preliminary Transformation #2 Left Brick Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template Transformation #2
+                    // Replacement Transformation #2 Left Brick Vertical Far Away, Right Brick Vertical, 2 Bricks Horizontal -> Template Transformation #2
                     // --|...|      |--|    | 1 1 3...4      4 1 1 3
                     //          ->          |            ->             
                     // --|...|      |--|    | 2 2 3...4      4 2 2 3
@@ -228,12 +260,21 @@ namespace Brickwork
                             }
                         }
 
-                        preliminaryTransformed = true;
+                        isPreliminaryTransformed = true;
                     }
 
                     #endregion
 
-                    // Main Transformations that begin transforming the array, by the specified module parameters
+                    // Main Transformation Templates that begin transforming the array, using a module that iterates by 2x4
+                    // For instance let's consider the following building (2x8):
+                    // 1 1 2 2 3 3 4 4 
+                    // 5 5 6 6 7 7 8 8
+
+                    // The Module will iterate 2 times and the building will be cut into the following parts:
+                    // 1 1 2 2 | 3 3 4 4 
+                    // 5 5 6 6 | 7 7 8 8
+
+                    // After which the module will look for the templates below to properly transform the numbers into the exercise criteria
                     // At this time of coding the module should be 2 x 4 (Height x Width)
                     #region Main Transformations
 
@@ -267,7 +308,7 @@ namespace Brickwork
                         CopyModuleOfAnArray(building.Values, newArray, i, j);
                     }
 
-                    // Transformation #3: 4 Bricks Vertical -> 4 Bricks Horizontal
+                    // Transformation #2: 4 Bricks Vertical -> 4 Bricks Horizontal
                     // ||||     ---- | 1 2 3 4      1 1 3 3
                     //      ->       |          ->
                     // ||||     ---- | 1 2 3 4      2 2 4 4
@@ -299,7 +340,7 @@ namespace Brickwork
                     }
 
 
-                    // Transformation #2: 2 Bricks Vertical, 2 Bricks Horizontal -> 4 Bricks Horizontal 
+                    // Transformation #3: 2 Bricks Vertical, 2 Bricks Horizontal -> 4 Bricks Horizontal 
                     // |--|       ----  | 1 2 2 4      1 1 2 2
                     //       ->         |          ->
                     // |--|       ----  | 1 3 3 4      3 3 4 4
@@ -412,21 +453,22 @@ namespace Brickwork
 
             if (readFile)
             {
-                var input = File.ReadAllText("input.txt");
-                var buildingParametersText = input.Substring(0, 3)
+                var input = File.ReadAllLines("input.txt");
+
+                var buildingParametersText = input[0]
                     .Split(' ');
 
                 var buildingNumbersFile = new Collection<int>();
 
                 foreach (var numberString in buildingParametersText)
                 {
-                    if (!int.TryParse(numberString, out int number))
+                    if (!int.TryParse(numberString, out int value))
                     {
                         Console.WriteLine(NOT_VALID_INPUT_STRING);
                         return false;
                     }
 
-                    buildingNumbersFile.Add(number);
+                    buildingNumbersFile.Add(value);
                 }
 
                 building.Height = buildingNumbersFile[0];
@@ -439,18 +481,69 @@ namespace Brickwork
 
                 building.Values = new int[building.Height, building.Width];
 
-                var valueString = input.Substring(3)
-                      .Split("\r\n")
-                      .Skip(1)
-                      .ToArray<string>();
-
-                for (int i = 0; i < building.Height; i++)
+                for (int i = 1; i < building.Height + 1; i++)
                 {
-                    var numbersString = valueString[i].Split(' ');
+                    var numbersString = input[i].Split(' ');
 
                     for (int j = 0; j < building.Width; j++)
                     {
                         if (!int.TryParse(numbersString[j], out int value))
+                        {
+                            Console.WriteLine(NOT_VALID_INPUT_STRING);
+                            return false;
+                        }
+
+                        building.Values[i - 1, j] = value;
+                    }
+                }
+
+                return true;
+            }
+            #endregion
+
+            else
+            {
+                #region Console Input
+
+                var buildingParameters = Console.ReadLine()
+                    .Split(' ');
+
+                var buildingNumbers = new Collection<int>();
+
+                if (buildingParameters.Length != 2)
+                {
+                    Console.WriteLine(NOT_VALID_INPUT_STRING);
+                    return false;
+                }
+
+                foreach (var numberString in buildingParameters)
+                {
+                    if (!int.TryParse(numberString, out int number))
+                    {
+                        Console.WriteLine(NOT_VALID_INPUT_STRING);
+                        return false;
+                    }
+
+                    buildingNumbers.Add(number);
+                }
+
+                building.Height = buildingNumbers[0];
+                building.Width = buildingNumbers[1];
+
+                if (!IsBuildingValid(building))
+                {
+                    return false;
+                }
+
+                building.Values = new int[building.Height, building.Width];
+                for (int i = 0; i < building.Height; i++)
+                {
+                    var valueString = Console.ReadLine()
+                        .Split(' ');
+
+                    for (int j = 0; j < building.Width; j++)
+                    {
+                        if (!int.TryParse(valueString[j], out int value))
                         {
                             Console.WriteLine(NOT_VALID_INPUT_STRING);
                             return false;
@@ -463,59 +556,6 @@ namespace Brickwork
                 return true;
             }
 
-            #endregion
-
-            #region Console Input
-
-            var buildingParameters = Console.ReadLine()
-                .Split(' ');
-
-            var buildingNumbers = new Collection<int>();
-
-            if (buildingParameters.Length != 2)
-            {
-                Console.WriteLine(NOT_VALID_INPUT_STRING);
-                return false;
-            }
-
-            foreach (var numberString in buildingParameters)
-            {
-                if (!int.TryParse(numberString, out int number))
-                {
-                    Console.WriteLine(NOT_VALID_INPUT_STRING);
-                    return false;
-                }
-
-                buildingNumbers.Add(number);
-            }
-
-            building.Height = buildingNumbers[0];
-            building.Width = buildingNumbers[1];
-
-            if (!IsBuildingValid(building))
-            {
-                return false;
-            }
-
-            building.Values = new int[building.Height, building.Width];
-            for (int i = 0; i < building.Height; i++)
-            {
-                var valueString = Console.ReadLine()
-                    .Split(' ');
-
-                for (int j = 0; j < building.Width; j++)
-                {
-                    if (!int.TryParse(valueString[j], out int value))
-                    {
-                        Console.WriteLine(NOT_VALID_INPUT_STRING);
-                        return false;
-                    }
-
-                    building.Values[i, j] = value;
-                }
-            }
-
-            return true;
 
             #endregion
         }
