@@ -33,7 +33,7 @@ namespace Brickwork
         public void Initialize()
         {
             var building = new Building();
-            var readFile = false;
+            var readFile = true;
 
             while (true)
             {
@@ -78,6 +78,11 @@ namespace Brickwork
                     {
                         j = insertionVerticalBrickX + 1;
                         isPreliminaryTransformed = false;
+
+                        if (j >= building.Width - 1)
+                        {
+                            break;
+                        }
                     }
 
                     // End Minimal Transformations are done, in case of Width being a number that can not be divided by 4
@@ -106,7 +111,7 @@ namespace Brickwork
                     if (building.Values[i, j] == building.Values[i, j + 1] &&
                         (building.Values[i + 1, j] != building.Values[i, j] &&
                         building.Values[i + 1, j + 1] == building.Values[i + 1, j]) &&
-                        j == building.Width - 2)
+                        (j == 0 || j == building.Width - 2))
                     {
                         //if (j == 0)
                         //{
@@ -137,7 +142,7 @@ namespace Brickwork
                     else if (building.Values[i, j] == building.Values[i + 1, j] &&
                         building.Values[i, j + 1] != building.Values[i, j] &&
                         building.Values[i, j + 1] == building.Values[i + 1, j + 1] &&
-                        j == building.Width - 2)
+                        (j == 0 || j == building.Width - 2))
                     {
                         //if (j == 0)
                         //{
@@ -217,7 +222,6 @@ namespace Brickwork
                             }
                         }
 
-
                         isPreliminaryTransformed = true;
                     }
 
@@ -238,6 +242,8 @@ namespace Brickwork
                         {
                             if (building.Values[i, g] == building.Values[i + 1, g])
                             {
+                                insertionVerticalBrickX = g;
+
                                 building.Values[i, j] = building.Values[i, g];
                                 building.Values[i + 1, j] = building.Values[i, g];
                                 break;
@@ -265,6 +271,7 @@ namespace Brickwork
                         }
 
                         isPreliminaryTransformed = true;
+                        continue;
                     }
 
                     #endregion
