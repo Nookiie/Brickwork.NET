@@ -37,7 +37,7 @@ namespace Brickwork
 
             // Change to true to read from input.txt file
             // Change to false to read from console input
-            var readFile = true;
+            var readFile = false;
 
             while (true)
             {
