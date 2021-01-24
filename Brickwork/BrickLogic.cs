@@ -37,7 +37,7 @@ namespace Brickwork
 
             // Change to true to read from input.txt file
             // Change to false to read from console input
-            var readFile = false;
+            var readFile = true;
 
             while (true)
             {
@@ -258,6 +258,14 @@ namespace Brickwork
 
                                 building.Values[i, j] = building.Values[i, g];
                                 building.Values[i + 1, j] = building.Values[i, g];
+
+                                // Compatibility Fixes in case of {even number} x {number that can not divide by 4, like 6 or 10}
+                                if (building.Width % 4 != 0)
+                                {
+                                    building.Values[i, g] = building.Values[i, g - 1];
+                                    building.Values[i + 1, g] = building.Values[i + 1, g - 1];
+                                }
+
                                 break;
                             }
                         }
